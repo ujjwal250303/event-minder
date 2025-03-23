@@ -1,56 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'home_screen.dart';
+import 'Screens/splash_screen.dart';
+import 'Screens/login_screen.dart';
+import 'Screens/register_screen.dart';
+import 'Screens/home_screen.dart';
+import 'Screens/moderator_screen.dart';
+import 'Screens/participant_screen.dart';
 
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(EventMinderApp());
+void main() {
+  runApp(MyApp());
 }
 
-class EventMinderApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'EventMinder',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: MainScreen(),
-    );
-  }
-}
-
-class MainScreen extends StatefulWidget {
-  @override
-  _MainScreenState createState() => _MainScreenState();
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-  final List<Widget> _screens = [
-    HomeScreen(),
-
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
-        onTap: _onItemTapped,
+      debugShowCheckedModeBanner: false,
+      title: 'Event Minder',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => SplashScreen(),  // Splash Screen ko first route set kara
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomeScreen(),
+        '/moderator': (context) => ModeratorScreen(),
+        '/participant': (context) => ParticipantScreen(),
+      },
     );
   }
 }
