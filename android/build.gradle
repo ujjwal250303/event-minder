@@ -2,10 +2,12 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        gradlePluginPortal()  // Ensure Gradle plugin portal is included
+        gradlePluginPortal() // ✅ Required for latest Gradle plugins
     }
     dependencies {
-        // Upgrade AGP (Android Gradle Plugin) to 8.2.1
+        // ✅ Latest Firebase Google Services Plugin
+        classpath 'com.google.gms:google-services:4.4.2'
+        // ✅ Latest Android Gradle Plugin (AGP)
         classpath 'com.android.tools.build:gradle:8.2.1'
     }
 }
@@ -18,13 +20,13 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// ✅ Clean Task for Removing Build Directory
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

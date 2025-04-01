@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:lottie/lottie.dart';
+import 'package:event_minder/Services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -7,20 +8,77 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  String errorMessage = "";
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  String? _errorMessage;
+  bool _isLoading = false;
 
-  void handleRegister() async {
-    String? result = await AuthService().register(
-      emailController.text,
-      passwordController.text,
-    );
-    if (result == null) {
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      setState(() => errorMessage = result);
+  void _register() async {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty) {
+      setState(() {
+        _errorMessage = "Please enter your full name!";
+      });
+      return;
     }
+
+    if (email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      setState(() {
+        _errorMessage = "Please fill all fields!";
+      });
+      return;
+    }
+
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      setState(() {
+        _errorMessage = "Please enter a valid email address!";
+      });
+      return;
+    }
+
+    if (password != confirmPassword) {
+      setState(() {
+        _errorMessage = "Passwords do not match!";
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    String? error = await _authService.register(context, email, password, name);
+
+    setState(() {
+      _isLoading = false;
+      if (error != null) {
+        _errorMessage = error;
+      }
+    });
+
+    if (error == null) {
+      print("🔍 Register successful, navigating to HomeScreen");
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      print("❌ Register failed: $error");
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -28,38 +86,139 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Create Account", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              Text("Sign up to continue", style: TextStyle(fontSize: 16, color: Colors.grey)),
-              SizedBox(height: 40),
-              TextField(controller: emailController, decoration: InputDecoration(labelText: "Email", border: OutlineInputBorder(), prefixIcon: Icon(Icons.email))),
-              SizedBox(height: 20),
-              TextField(controller: passwordController, obscureText: true, decoration: InputDecoration(labelText: "Password", border: OutlineInputBorder(), prefixIcon: Icon(Icons.lock))),
-              SizedBox(height: 10),
-              if (errorMessage.isNotEmpty) Text(errorMessage, style: TextStyle(color: Colors.red)),
-              SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: handleRegister,
-                  style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 15), backgroundColor: Colors.green),
-                  child: Text("Register", style: TextStyle(fontSize: 18, color: Colors.white)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Lottie.asset(
+                  'assets/animations/register.json',
+                  height: 200,
                 ),
-              ),
-              SizedBox(height: 10),
-              Center(
-                child: TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/login'),
-                  child: Text("Already have an account? Login"),
+                SizedBox(height: 20),
+                Text(
+                  "Create Account",
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.green),
                 ),
-              ),
-            ],
+                SizedBox(height: 10),
+                Text(
+                  "Sign up to get started",
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                SizedBox(height: 30),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _nameController,
+                          decoration: InputDecoration(
+                            labelText: "Full Name",
+                            prefixIcon: Icon(Icons.person),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: "Email",
+                            prefixIcon: Icon(Icons.email),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: Icon(Icons.lock),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: "Confirm Password",
+                            prefixIcon: Icon(Icons.lock_outline),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 15),
+                        if (_errorMessage != null)
+                          Container(
+                            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            margin: EdgeInsets.only(bottom: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _errorMessage!,
+                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            ),
+                          ),
+                        SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _register,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                            child: _isLoading
+                                ? SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                                : Text(
+                              "Register",
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 15),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  child: Text(
+                    "Already have an account? Login",
+                    style: TextStyle(fontSize: 16, color: Colors.green),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
