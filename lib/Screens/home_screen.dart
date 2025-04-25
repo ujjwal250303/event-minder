@@ -1,128 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:event_minder/Models/user_details.dart';
 import 'package:event_minder/Services/auth_service.dart';
 import 'package:event_minder/Services/user_provider.dart';
 
-class HomeScreen extends StatefulWidget {
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final AuthService _authService = AuthService();
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    // Check if userDetails is null, and redirect to login if needed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      UserDetails? userDetails = Provider.of<UserProvider>(context, listen: false).userDetails;
-      if (userDetails == null) {
-        print("❌ userDetails is null in HomeScreen, redirecting to login");
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-      }
-    });
-  }
-
-  void _logout() async {
-    try {
-      await _authService.logout(context);
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-    } catch (e) {
-      setState(() {
-        _errorMessage = "Error logging out: $e";
-      });
-    }
-  }
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    UserDetails? userDetails = Provider.of<UserProvider>(context).userDetails;
-
-    if (userDetails == null) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
+    final user = Provider.of<UserProvider>(context).user;
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text("Event Minder"),
-        backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: _logout,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0D47A1), // Replaced Colors.blue[900]
+              Color(0xFF42A5F5), // Replaced Colors.blue[300]
+            ],
           ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Welcome to Event Minder, ${userDetails.name}!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Text(
-              "Manage and track your events effortlessly.",
-              style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-              textAlign: TextAlign.center,
-            ),
-            if (_errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Text(
-                  _errorMessage!,
-                  style: TextStyle(color: Colors.red, fontSize: 14),
-                ),
-              ),
-            SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/moderator');
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Card(
+            elevation: 10,
+            margin: const EdgeInsets.all(20),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            color: Colors.white.withAlpha((0.1 * 255).toInt()), // Replaced withOpacity
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Welcome, ${user?.name ?? 'Guest'}!",
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      shadows: [Shadow(color: Colors.black54, blurRadius: 10, offset: Offset(2, 2))],
+                    ),
                   ),
-                  backgroundColor: Colors.blue,
-                ),
-                child: Text(
-                  "Moderator Dashboard",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/participant');
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(context, '/participant'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 40),
+                      backgroundColor: const Color(0xFF42A5F5).withAlpha((0.8 * 255).toInt()),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 5,
+                    ),
+                    child: const Text("Go to Participant Area", style: TextStyle(fontSize: 18, color: Colors.white)),
                   ),
-                  backgroundColor: Colors.blue,
-                ),
-                child: Text(
-                  "Participant Dashboard",
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () => Provider.of<AuthService>(context, listen: false).logout(context),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 40),
+                      backgroundColor: Colors.redAccent.withAlpha((0.8 * 255).toInt()),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 5,
+                    ),
+                    child: const Text("Logout", style: TextStyle(fontSize: 18, color: Colors.white)),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

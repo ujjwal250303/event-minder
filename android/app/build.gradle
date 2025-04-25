@@ -2,24 +2,24 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")  // ✅ Firebase plugin properly applied
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "com.example.event_minder"
-    compileSdk = 34  // ✅ Make sure this matches your Flutter project's compileSdkVersion
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.event_minder"
         minSdk = 23
-        targetSdk = 34  // ✅ Should match your Flutter's targetSdkVersion
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
@@ -28,6 +28,9 @@ android {
 
     buildTypes {
         release {
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
             signingConfig = signingConfigs.debug
         }
     }
@@ -38,12 +41,8 @@ flutter {
 }
 
 dependencies {
-    // ✅ Import the Firebase BoM (Bill of Materials)
-    implementation platform('com.google.firebase:firebase-bom:33.11.0')
-
-    // ✅ Firebase Authentication (for login/register)
+    implementation platform('com.google.firebase:firebase-bom:33.12.0')
     implementation 'com.google.firebase:firebase-auth'
-
-    // ✅ Firebase Firestore (if needed for storing data)
     implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-analytics'
 }
